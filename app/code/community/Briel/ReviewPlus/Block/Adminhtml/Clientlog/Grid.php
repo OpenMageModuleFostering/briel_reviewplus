@@ -100,19 +100,18 @@ class Briel_ReviewPlus_Block_Adminhtml_Clientlog_Grid extends Mage_Adminhtml_Blo
 		if (!$value = $column->getFilter()->getValue()) {
             return $this;
         }
-		if (empty($value['from'])) {
+		if (empty($value['from']) && isset($value['to'])) {
 			$to = $value['to']->getTimestamp();
-			$month = date('n', $to);
-			$day = date('j', $to);
-			$year = date('Y', $to);
-			$from = mktime(0, 0, 0, $month, $day, $year);
-			$this->getCollection()->addFieldToFilter('send_time', array('from' => $from, 'to' => $to));
+			$from = mktime(0, 0, 0);
+			$this->getCollection()->addFieldToFilter('send_time', array('lteq' => $to));
 			return $this;
-		} else if (empty($value['to'])) {
+		} else if (empty($value['to']) && isset($value['from'])) {
 			$from = $value['from']->getTimestamp();
-			$this->getCollection()->addFieldToFilter('send_time', array('from' => $from, 'to' => time()));
+			$this->getCollection()->addFieldToFilter('send_time', array('gteq' => $from));
 			return $this;
 		} else {
+			$from = $value['from']->getTimestamp();
+			$to = $value['to']->getTimestamp();
 			$this->getCollection()->addFieldToFilter('send_time', array('from' => $from, 'to' => $to));
 			return $this;
 		}

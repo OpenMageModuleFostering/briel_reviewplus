@@ -11,11 +11,10 @@
                 </tr>
                 <tr>
 					<td valign="top">
-						<h1 style="font-size:21px; font-weight:normal; line-height:22px; margin:0;">Dear {{var namevar}},</h1>
-                        <h3 style="font-size:16px; font-weight:normal; line-height:16px; margin:0 0 10px 0;">Thank you for choosing us!</h3>
-                        <p style="border:1px solid #E0E0E0; font-size:12px; line-height:16px; margin-bottom:10px; padding:13px 18px; background:#F9F9F9;">Please take the time to give a short review for the product(s) you've recently purchased from our store.<p>
+						<h1 style="font-size:16px; font-weight:normal; line-height:22px; margin:0; margin-top:20px;">Dear {{var namevar}}, thank you for choosing us!</h1>
+                        <p style="border:1px solid #E0E0E0; font-size:12px; line-height:16px; margin-bottom:10px; padding:13px 18px; background:#F9F9F9;">Please take a minute of your time to give a short review for the product(s) you've recently purchased from our store.<p>
                         <p style="border:1px solid #E0E0E0; font-size:12px; line-height:16px; margin-bottom:10px; padding:13px 18px; background:#F9F9F9;"><span style="font-weight:bold;">Ordered product(s): </span><br />{{var purchased_products}}</p>
-                        <p style="border:1px solid #E0E0E0; font-size:12px; line-height:16px; margin:0; padding:13px 18px; background:#F9F9F9;">How satisfied are you with the product(s) you've bought?</p>
+                        <p style="border:1px solid #E0E0E0; font-size:12px; line-height:16px; margin:0; padding:13px 18px; background:#F9F9F9;">How satisfied are you with the product(s) you've bought? Click the rating below which best describes your opinion.</p>
                         <ul style="border:1px solid #E0E0E0;list-style:none; font-size:12px; line-height:16px; margin-top:0; margin-bottom:20px; padding-top:10px; padding-bottom:20px; background:#F9F9F9;">
                         	<li style="list-style:none;"><a href="{{var review_page_url}}&rtng=5"><img src="{{config path='web/unsecure/base_url'}}/skin/frontend/base/default/images/reviewplus_email_template/5-stars.jpg" alt="Very satisfied" /></a></li>
                         	<li style="list-style:none;"><a href="{{var review_page_url}}&rtng=4"><img src="{{config path='web/unsecure/base_url'}}/skin/frontend/base/default/images/reviewplus_email_template/4-stars.jpg" alt="Satisfied" /></a></li>
@@ -26,7 +25,7 @@
 					</td>
                 </tr>
                 <tr>
-                    <td align="center" style="background:#EAEAEA; text-align:center;"><p style="font-size:12px; margin:0;">Thank you again, <strong>{{var namevar}}</strong></p></td>
+                    <td align="center" style="background:#EAEAEA; text-align:center;"><p style="font-size:12px; margin:0;">Thank you <strong>{{var namevar}}</strong> and have a nice day!</p></td>
                 </tr>
             </table>
         </td>

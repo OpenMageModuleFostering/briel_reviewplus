@@ -3,7 +3,7 @@
 <config>
 	<modules>
 		<Briel_ReviewPlus>
-			<version>0.9.0</version>
+			<version>0.9.1</version>
 		</Briel_ReviewPlus>
 	</modules>
 	<admin>
