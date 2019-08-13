@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/Briel_ReviewPlus",
+    "type": "magento-module",
+    "license": "GNU-General-Public-License-(GPL)",
+    "homepage": "",
+    "description": "ReviewPlus will help boost the amount of reviews you receive for your products by sending a review notification email to customers.",
+    "authors": [
+    {
+        "name": "Onel Velica",
+        "email": "mage@briel.ro"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}

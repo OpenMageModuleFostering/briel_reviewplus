@@ -1,0 +1,165 @@
+<?php
+// get parameters
+$get = $this->getRequest()->getParams();
+$order_id = $get['oid'];
+$get_hash = $get['hash'];
+$rtng = (int)$get['rtng'];
+// retrieve order data
+$order = Mage::getModel('sales/order')->load($order_id);
+$increment_id = $order->getIncrementId();
+$nickname = $order->getCustomerName();
+$customer_email = $order->getCustomerEmail();
+$items = $order->getAllItems();
+// check hash for security reasons
+$salt = "Magento extension created by Briel Software";
+$check_hash = md5($nickname.$order_id.$salt);
+if ($get_hash == $check_hash) {
+	// assemble an array of skus from order details
+	$product_skus = array();
+	foreach ($items as $item_id => $item) {
+		$sku = $item->getSku();
+		array_push($product_skus, trim($sku));
+	}
+	// get collections for IF cases
+	$reviews_collection = Mage::getModel('reviewplus/reviews')->getCollection()->addFieldToFilter('order_id', $order_id);
+	foreach ($reviews_collection as $value) {
+		$detail_contents = Mage::getModel('reviewplus/reviews')->load($value->getId())->getData('product_review');
+		$review_status = Mage::getModel('reviewplus/reviews')->load($value->getId())->getData('review_status');
+	}
+	$clientlog_collection = Mage::getModel('reviewplus/clientlog')->getCollection()->addFieldToFilter('order_id', $order_id);
+?>
+<div class="reviewplus-wrapper">
+	<?php if (count($reviews_collection) == 0) { ?>
+		<form name="review_form" action="<?php echo $this->getUrl('reviewplus/index/rate') ?>" method="post">
+			<table class="data-table">
+				<thead>
+					<tr>
+					<th width="35%" style="padding:10px 20px;"><p style="font-size:14px; margin:0; padding:0;"><?php echo $this->__('Product review for order #').$increment_id; ?></p></th>
+					<th width="65%"></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach($product_skus as $val) {
+						// get PRODUCT ID by sku
+						$product = Mage::getModel('catalog/product')->loadByAttribute('sku', $val);
+						$product_id = $product->getId();
+						// write data to REVIEWPLUS REVIEWS table
+						$reviewplus_reviews_db = Mage::getModel('reviewplus/reviews');
+						$reviewplus_reviews_db->setData('order_id', $order_id)->save();
+						$reviewplus_reviews_db->setData('product_sku', $val)->save();
+						$reviewplus_reviews_db->setData('customer_name', $nickname)->save();
+						$reviewplus_reviews_db->setData('customer_email', $customer_email)->save();
+						$reviewplus_reviews_db->setData('product_rating', $rtng)->save();
+						$reviewplus_reviews_db->setData('product_review', '')->save();
+						$reviewplus_reviews_db->setData('review_status', 'pending')->save();
+						$reviewplus_reviews_db->setData('store_id', Mage::app()->getStore()->getId())->save();
+						$reviewplus_reviews_id = $reviewplus_reviews_db->getId();
+					?>
+						<tr>
+						<td style="padding:20px;">
+							<div class="form-list" style="margin-bottom:10px;">
+								<label><?php echo $product->getName(); ?></label>
+							</div>
+							<br />
+							<div class="product-image">
+								<img src="<?php echo $product->getSmallImageUrl(); ?>" alt="<?php echo $val; ?>" style="width:100px; height:100px;" />
+							</div>
+						</td>
+						<td style="padding:20px;">
+							<input type="hidden" name="sku[<?php echo $val; ?>]" value="<?php echo $val; ?>">
+							<input type="hidden" name="nickname[<?php echo $val; ?>]" value="<?php echo $nickname; ?>">
+							<input type="hidden" name="rating[<?php echo $val; ?>]" value="<?php echo $rtng; ?>">
+							<input type="hidden" name="rating-id[<?php echo $val; ?>]" value="<?php echo $reviewplus_reviews_id; ?>">
+							<div class="form-list">
+								<label class="required" for=""><em> *</em><?php echo $this->__('Review'); ?></label>
+								<div class="input-box">
+									<textarea name="detail[<?php echo $val; ?>]" class="required-entry" style="width:400px; height:120px;"></textarea>
+								</div>
+							</div>
+						</td>
+						</tr>
+					<?php } // end FOREACH ?>
+				</tbody>
+				<tfoot>
+					<tr>
+					<td style="border-top:1px solid #BEBCB7;"></td>
+					<td style="border-top:1px solid #BEBCB7; padding:10px 20px; text-align:right; vertical-align:middle;">
+						<button id="review-submit-btn" onclick="review_form.submit();" class="button" type="button" title="<?php echo $this->__('Submit'); ?>"><span><span><?php echo $this->__('Submit'); ?></span></span></button>
+					</td>
+					</tr>
+				</tfoot>
+			</table>
+		</form>
+	<?php } else if (count($reviews_collection) == count($product_skus) && strlen($detail_contents) == 0 && $review_status == 'pending') { ?>
+		<form name="review_form" action="<?php echo $this->getUrl('reviewplus/index/rate') ?>" method="post">
+			<table class="data-table">
+				<thead>
+					<tr>
+					<th width="35%" style="padding:10px 20px;"><p style="font-size:14px; margin:0; padding:0;"><?php echo $this->__('Product review for order #').$increment_id; ?></p></th>
+					<th width="65%"></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach($product_skus as $val) { 
+						$product = Mage::getModel('catalog/product')->loadByAttribute('sku', $val);
+						$product_id = $product->getId();
+						$reviewplus_reviews_coll = Mage::getModel('reviewplus/reviews')->getCollection();
+						$reviewplus_reviews_coll->addFieldToFilter('order_id', $order_id)->addFieldToFilter('product_sku', $val);
+						foreach ($reviewplus_reviews_coll as $reviewplus_reviews_entry) {
+							$reviewplus_reviews_id = $reviewplus_reviews_entry->getId();
+						}	
+					?>
+						<tr>
+						<td style="padding:20px;">
+							<div class="form-list" style="margin-bottom:10px;">
+								<label><?php echo $product->getName(); ?></label>
+							</div>
+							<br />
+							<div class="product-image">
+								<img src="<?php echo $product->getSmallImageUrl(); ?>" alt="<?php echo $val; ?>" style="width:100px; height:100px;" />
+							</div>
+						</td>
+						<td style="padding:20px;">
+							<input type="hidden" name="sku[<?php echo $val; ?>]" value="<?php echo $val; ?>">
+							<input type="hidden" name="nickname[<?php echo $val; ?>]" value="<?php echo $nickname; ?>">
+							<input type="hidden" name="rating[<?php echo $val; ?>]" value="<?php echo $rtng; ?>">
+							<input type="hidden" name="rating-id[<?php echo $val; ?>]" value="<?php echo $reviewplus_reviews_id; ?>">
+							<div class="form-list">
+								<label class="required" for=""><em> *</em><?php echo $this->__('Review'); ?></label>
+								<div class="input-box">
+									<textarea name="detail[<?php echo $val; ?>]" class="required-entry" style="width:400px; height:120px;"></textarea>
+								</div>
+							</div>
+						</td>
+						</tr>
+					<?php } // end FOREACH ?>
+				</tbody>
+				<tfoot>
+					<tr>
+					<td style="border-top:1px solid #BEBCB7;"></td>
+					<td style="border-top:1px solid #BEBCB7; padding:10px 20px; text-align:right; vertical-align:middle;">
+						<button id="review-submit-btn" onclick="review_form.submit();" class="button" type="button" title="<?php echo $this->__('Submit'); ?>"><span><span><?php echo $this->__('Submit'); ?></span></span></button>
+					</td>
+					</tr>
+				</tfoot>
+			</table>
+		</form>
+	<?php } else if (count($reviews_collection) == count($product_skus) && strlen($detail_contents) == 0 && $review_status == 'approved') { ?>
+		<ul class="messages">
+			<li class="success-msg"><ul><li><span><?php echo $this->__('Thank you for reviewing our product(s)!'); ?></span></li></ul></li>
+		</ul>
+	<?php } else if (count($reviews_collection) == count($product_skus) && strlen($detail_contents) >= 2) { ?>
+		<ul class="messages">
+			<li class="success-msg"><ul><li><span><?php echo $this->__('Thank you for reviewing our product(s)!'); ?></span></li></ul></li>
+		</ul>
+	<?php } // end of collection IF ELSE IF ?>
+</div>
+<script type="text/javascript">
+	review_form = new VarienForm('review_form', false);
+</script>
+
+<?php } else { ?>
+	<ul class="messages">
+		<li class="error-msg"><ul><li><span><?php echo $this->__('You do not have the proper security token to view this page.'); ?></span></li></ul></li>
+	</ul>
+<?php } // end HASH check IF ELSE ?>
