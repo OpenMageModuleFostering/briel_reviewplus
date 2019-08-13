@@ -12,6 +12,7 @@
 		</reference>
 		<reference name="head">
 			<action method="setTitle" translate="title"><title>Briel ReviewPlus</title></action>
+			<action method="addCss"><stylesheet>css/briel_reviewplus.css</stylesheet></action>
 		</reference>
 	</reviewplus_index_index>
 </layout>

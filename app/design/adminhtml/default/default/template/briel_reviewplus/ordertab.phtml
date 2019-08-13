@@ -8,7 +8,25 @@ $customer_email = $order->getCustomerEmail();
 $ordered_products_collection = $order->getAllItems();
 $ordered_products = array();
 foreach($ordered_products_collection as $ordered_prod) {
-	$ordered_products[] = $ordered_prod->getSku();
+	$sku = $ordered_prod->getSku();
+	$_prod = Mage::getModel('catalog/product')->loadByAttribute('sku', array('eq' => $sku));
+	if ($_prod->getTypeId() == "simple") {
+		$parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($_prod->getId());
+		if (!$parentIds) {
+			$parentIds = Mage::getModel('catalog/product_type_configurable')->getParentIdsByChild($_prod->getId());
+		}
+		if (isset($parentIds[0])) {
+			$parent = Mage::getModel('catalog/product')->load($parentIds[0]);
+			$parent_sku = $parent->getSku();
+			if (!in_array($parent_sku, $ordered_products)) {
+				$ordered_products[] = $parent_sku;
+			}
+		} else {
+			if (!in_array($sku, $ordered_products)) {
+				$ordered_products[] = $sku;
+			}
+		}
+	} // end of product TYPE IF
 }
 $ordered_products = implode(", ", $ordered_products);
 // instance clientlog model and load current order
@@ -17,10 +35,10 @@ if (count($clientlog_coll) == 1) {
 	foreach($clientlog_coll as $entry) {
 		$clientlog_db = Mage::getModel('reviewplus/clientlog')->load($entry->getId());
 		$status = $clientlog_db->getData('status');
-		$send_time = $clientlog_db->getData('send_time');
+		$due_date = $clientlog_db->getData('due_date');
 	}
 } else {
-	$send_time = 'undefined';
+	$due_date = 'undefined';
 	$status = '';
 }
 ?>
@@ -38,7 +56,7 @@ if (count($clientlog_coll) == 1) {
 					</tr>
 					<tr>
 						<td class="label"><?php echo $this->__('Send time'); ?></td>
-						<td class="value"><?php if ($send_time == 'undefined') { echo "<strong>-</strong>"; } else { echo "<strong>".date('d M Y', $send_time)."</strong>"; } ?></td>
+						<td class="value"><?php if ($send_time == 'undefined') { echo "<strong>-</strong>"; } else { echo "<strong>".date('d M Y', $due_date)."</strong>"; } ?></td>
 					</tr>
 					<?php
 					// check IF clientlog status is 0 && extensions is enabled && current order status is among allowed list from extension config

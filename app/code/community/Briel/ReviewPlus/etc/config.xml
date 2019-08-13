@@ -3,7 +3,7 @@
 <config>
 	<modules>
 		<Briel_ReviewPlus>
-			<version>0.9.1</version>
+			<version>1.0.0</version>
 		</Briel_ReviewPlus>
 	</modules>
 	<admin>
@@ -33,9 +33,14 @@
 						<sort_order>20</sort_order>
 						<action>adminhtml/reviews/index</action>
 					</reviewplus_submenu2>
+					<reviewplus_help translate="title" module="reviewplus">
+						<title>Help</title>
+						<sort_order>30</sort_order>
+						<action>adminhtml/reviews/help</action>
+					</reviewplus_help>
 					<reviewplus_options translate="title" module="reviewplus">
 						<title>Settings</title>
-						<sort_order>30</sort_order>
+						<sort_order>40</sort_order>
 						<action>adminhtml/system_config/edit/section/reviewplus_options</action>
 					</reviewplus_options>
 				</children>
@@ -164,15 +169,6 @@
 			    </observers>
 			</sales_order_save_after>    
 		</events>
-		<template> <!--EMAIL-TEMPLATE-->
-			<email>
-				<reviewplus_options_reviewplus_config_email_template>
-					<label>ReviewPlus Email Template</label>
-					<file>reviewplus_email.html</file>
-					<type>html</type>
-				</reviewplus_options_reviewplus_config_email_template>
-			</email>
-		</template>
 	</global>
 	<crontab> <!--EMAIL-CRONJOB-->
         <jobs>

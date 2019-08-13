@@ -4,6 +4,19 @@ class Briel_ReviewPlus_Adminhtml_ReviewsController extends Mage_Adminhtml_Contro
 	
 	public function indexAction() {
 		$this->loadLayout();
+		$this->_setActiveMenu('reviewplus_menu');
+		$this->renderLayout();
+	}
+	
+	public function helpAction() {
+		$this->loadLayout();
+		$this->_setActiveMenu('reviewplus_menu');
+		$this->renderLayout();
+	}
+	
+	public function editAction() {
+		$this->loadLayout();
+		$this->_setActiveMenu('reviewplus_menu');
 		$this->renderLayout();
 	}
 	
@@ -25,6 +38,25 @@ class Briel_ReviewPlus_Adminhtml_ReviewsController extends Mage_Adminhtml_Contro
 		}
 		$this->_redirect('*/*/index');
 	}
+	
+	public function saveAction() {
+		$post = $this->getRequest()->getPost();
+		$id = $post['reviewplus_id'];
+		$session = Mage::getSingleton('adminhtml/session');
+		try {
+			$reviews_db = Mage::getModel('reviewplus/reviews')->load($id);
+			$reviews_db->setData('product_rating', $post['edit']['rating'])->save();
+			$reviews_db->setData('customer_name', $post['edit']['name'])->save();
+			$reviews_db->setData('customer_email', $post['edit']['email'])->save();
+			$reviews_db->setData('product_review_title', $post['edit']['title'])->save();
+			$reviews_db->setData('product_review', $post['edit']['detail'])->save();
+			// success message
+			$session->addSuccess($this->__('Review edited successfully'));
+		} catch(Exception $ex) {
+			$session->addError($ex->getMessage());
+		}
+		$this->_redirect('*/*/index');
+	}
 
 	public function massapproveAction() {
 		$post = $this->getRequest()->getPost();
@@ -37,6 +69,7 @@ class Briel_ReviewPlus_Adminhtml_ReviewsController extends Mage_Adminhtml_Contro
 					// compile review data array
 					$reviewplus_reviews_db = Mage::getModel('reviewplus/reviews')->load($id);
 					$nickname = $reviewplus_reviews_db->getData('customer_name');
+					$title = $reviewplus_reviews_db->getData('product_review_title');
 					$detail = $reviewplus_reviews_db->getData('product_review');
 					$rtng = $reviewplus_reviews_db->getData('product_rating');
 					$sku = $reviewplus_reviews_db->getData('product_sku');
@@ -62,10 +95,10 @@ class Briel_ReviewPlus_Adminhtml_ReviewsController extends Mage_Adminhtml_Contro
 							$rating[$rating_option->getId()] = $rtng;
 						}
 						$review_data = array(
-							'ratings' => $rating,
-							'validate_rating' => '', 
-							'nickname' => $nickname, 
-							'title' => '', 
+							'ratings' => $rating ,
+							'validate_rating' => '' , 
+							'nickname' => $nickname , 
+							'title' => $title , 
 							'detail' => $detail
 						);
 						$review_db = Mage::getModel('review/review')->setData($review_data);

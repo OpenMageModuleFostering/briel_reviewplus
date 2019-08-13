@@ -1,12 +1,13 @@
 <?php
 
 class Briel_ReviewPlus_Adminhtml_ClientlogController extends Mage_Adminhtml_Controller_Action {
-	
+
 	public function indexAction() {
 		$this->loadLayout();
+		$this->_setActiveMenu('reviewplus_menu');
 		$this->renderLayout();
 	}
-	
+
 	public function massdeleteAction() {
 		$post = $this->getRequest()->getPost();
 		$clientlog_ids = $post['clientlog_id'];
@@ -25,7 +26,7 @@ class Briel_ReviewPlus_Adminhtml_ClientlogController extends Mage_Adminhtml_Cont
 		}
 		$this->_redirect('*/*/index');
 	}
-	
+
 	public function masssendAction() {
 		$post = $this->getRequest()->getPost();
 		$clientlog_ids = $post['clientlog_id'];
@@ -68,6 +69,7 @@ class Briel_ReviewPlus_Adminhtml_ClientlogController extends Mage_Adminhtml_Cont
 						$store_id = Mage::app()->getStore()->getId();
 						// set status as SENT on followup entry
 						$clientlog_db->setData('status', 1)->save();
+						$clientlog_db->setData('time_sent', time())->save();
 						// send transactional, will not send if template has no subject
 						$mail = Mage::getModel('core/email_template');
 						$config_bcc = Mage::getStoreConfig('reviewplus_options/reviewplus_config/bcc_email', Mage::app()->getStore()->getId());

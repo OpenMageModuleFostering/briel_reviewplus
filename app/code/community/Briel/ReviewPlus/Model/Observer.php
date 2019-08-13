@@ -2,8 +2,7 @@
 
 class Briel_ReviewPlus_Model_Observer {
 	
-	// Observer model class version 0.9.1
-	
+	// Observer model class version 1.0.0
 	public function logClients($observer) {
 		// set timezone
 		date_default_timezone_set(Mage::getStoreConfig('general/locale/timezone', Mage::app()->getStore()));
@@ -21,11 +20,34 @@ class Briel_ReviewPlus_Model_Observer {
 				$order = Mage::getModel('sales/order')->load($order_id);
 				$increment_id = $order->getIncrementId();
 				$customer_name = $order->getCustomerName();
+				if ($customer_name == 'Guest') {
+					$billing_address_id = $order->getBillingAddressId();
+					$order_address = Mage::getModel('sales/order_address')->load($billing_address_id);
+					$customer_name = $order_address->getName();
+				}
 				$customer_email = $order->getCustomerEmail();
 				$ordered_products_collection = $order->getAllItems();
 				$ordered_products = array();
 				foreach($ordered_products_collection as $ordered_prod) {
-					$ordered_products[] = $ordered_prod->getSku();
+					$tmp_sku = $ordered_prod->getSku();
+					$_prod = Mage::getModel('catalog/product')->loadByAttribute('sku', array('eq' => $sku));
+					if ($_prod->getTypeId() == "simple") {
+						$parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($_prod->getId());
+						if (!$parentIds) {
+							$parentIds = Mage::getModel('catalog/product_type_configurable')->getParentIdsByChild($_prod->getId());
+						}
+						if (isset($parentIds[0])) {
+							$parent = Mage::getModel('catalog/product')->load($parentIds[0]);
+							$parent_sku = $parent->getSku();
+							if (!in_array($parent_sku, $ordered_products)) {
+								$ordered_products[] = $parent_sku;
+							}
+						} else {
+							if (!in_array($sku, $ordered_products)) {
+								$ordered_products[] = $sku;
+							}
+						}
+					} // end of product TYPE IF
 				}
 				$ordered_products = implode(", ", $ordered_products);
 				// if collection is empty LOG new data
@@ -40,11 +62,12 @@ class Briel_ReviewPlus_Model_Observer {
 					$clientlog_db->setData('customer_email', $customer_email)->save();
 					$clientlog_db->setData('ordered_products', $ordered_products)->save();
 					$clientlog_db->setData('status', 0)->save();
+					$clientlog_db->setData('time_sent', 0)->save();
 					// calculate send time and save timestamp
 					$days_delay_config = Mage::getStoreConfig('reviewplus_options/reviewplus_config/days_delay', Mage::app()->getStore());
 					$days_delay = (24 * 60 * 60) * (int)$days_delay_config;
 					$timestamp = time() + $days_delay;
-					$clientlog_db->setData('send_time', $timestamp)->save();
+					$clientlog_db->setData('due_date', $timestamp)->save();
 				} // end collection count IF
 			} // end of STATUS IF
 		} // end of IF ENABLED
@@ -107,6 +130,7 @@ class Briel_ReviewPlus_Model_Observer {
 					$store_id = Mage::app()->getStore()->getId();
 					// set status as SENT on followup entry
 					$clientlog_db->setData('status', 1)->save();
+					$clientlog_db->setData('time_sent', time())->save();
 					// send transactional, will not send if template has no subject
 					$mail = Mage::getModel('core/email_template');
 					// send Bcc if config is set
